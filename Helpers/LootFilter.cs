@@ -27,6 +27,11 @@ namespace MapAssist.Helpers
     {
         public static bool Filter(UnitAny unitAny)
         {
+            return Find(unitAny) != null;
+        }
+
+        public static ItemFilter Find(UnitAny unitAny)
+        {
             var baseName = Items.ItemNames[unitAny.TxtFileNo];
             var itemQuality = unitAny.ItemData.ItemQuality;
             var isEth = (unitAny.ItemData.ItemFlags & ItemFlags.IFLAG_ETHEREAL) == ItemFlags.IFLAG_ETHEREAL;
@@ -37,15 +42,15 @@ namespace MapAssist.Helpers
                 numSockets = 0;
             }
 
-            return Filter(baseName, itemQuality, isEth, numSockets, lowQuality);
+            return Find(baseName, itemQuality, isEth, numSockets, lowQuality);
         }
 
-        private static bool Filter(string baseName, ItemQuality itemQuality, bool isEth, int numSockets,
+        private static ItemFilter Find(string baseName, ItemQuality itemQuality, bool isEth, int numSockets,
             bool lowQuality)
         {
             if (lowQuality)
             {
-                return false;
+                return null;
             }
 
             //populate a list of filter rules by combining rules from "Any" and the item base name
@@ -57,9 +62,9 @@ namespace MapAssist.Helpers
             // Early breakout
             // We know that there is an item in here without any actual filters
             // So we know that simply having the name match means we can return true
-            if (matches.Any(kv => kv.Value == null))
+            foreach (var item in matches.Where(kv => kv.Value == null).SelectMany(kv => kv.Value))
             {
-                return true;
+                return item;
             }
 
             //scan the list of rules
@@ -71,10 +76,10 @@ namespace MapAssist.Helpers
                                    item.Sockets.Contains(numSockets);
 
                 var ethReqMet = (item.Ethereal == null || item.Ethereal == isEth);
-                if (qualityReqMet && socketReqMet && ethReqMet) { return true; }
+                if (qualityReqMet && socketReqMet && ethReqMet) { return item; }
             }
 
-            return false;
+            return null;
         }
     }
 }

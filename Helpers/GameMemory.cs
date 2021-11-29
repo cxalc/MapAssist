@@ -115,6 +115,7 @@ namespace MapAssist.Helpers
                 return null;
             }
         }
+
         private static void GetUnits(ref List<UnitAny> monsterList, ref List<UnitAny> itemList)
         {
             for (var i = 0; i <= 5; i++)
@@ -138,11 +139,13 @@ namespace MapAssist.Helpers
                                 if (!itemList.Contains(unitAny) && unitAny.IsDropped())
                                 {
                                     itemList.Add(unitAny);
-                                    if ((!Items.ItemUnitHashesSeen[_currentProcessId].Contains(unitAny.ItemHash()) && !Items.ItemUnitIdsSeen[_currentProcessId].Contains(unitAny.UnitId)) && LootFilter.Filter(unitAny))
+                                    var lootFilter = LootFilter.Find(unitAny);
+                                    if ((!Items.ItemUnitHashesSeen[_currentProcessId].Contains(unitAny.ItemHash()) && !Items.ItemUnitIdsSeen[_currentProcessId].Contains(unitAny.UnitId)) && lootFilter != null)
                                     {
-                                        if (MapAssistConfiguration.Loaded.ItemLog.PlaySoundOnDrop)
+                                        var sound = lootFilter.Sound != null ? lootFilter.Sound : MapAssistConfiguration.Loaded.ItemLog.Sound;
+                                        if (sound.ToLower() != "silent")
                                         {
-                                            AudioPlayer.PlayItemAlert();
+                                            AudioPlayer.PlayItemAlert(sound);
                                         }
                                         Items.ItemUnitHashesSeen[_currentProcessId].Add(unitAny.ItemHash());
                                         Items.ItemUnitIdsSeen[_currentProcessId].Add(unitAny.UnitId);
@@ -164,6 +167,7 @@ namespace MapAssist.Helpers
                 }
             }
         }
+
         private static void GetUnits(HashSet<Room> rooms, ref List<UnitAny> monsterList, ref List<UnitAny> itemList)
         {
             foreach (var room in rooms)
@@ -184,11 +188,13 @@ namespace MapAssist.Helpers
                             if (!itemList.Contains(unitAny) && unitAny.IsDropped())
                             {
                                 itemList.Add(unitAny);
-                                if ((!Items.ItemUnitHashesSeen[_currentProcessId].Contains(unitAny.ItemHash()) && !Items.ItemUnitIdsSeen[_currentProcessId].Contains(unitAny.UnitId)) && LootFilter.Filter(unitAny))
+                                var lootFilter = LootFilter.Find(unitAny);
+                                if ((!Items.ItemUnitHashesSeen[_currentProcessId].Contains(unitAny.ItemHash()) && !Items.ItemUnitIdsSeen[_currentProcessId].Contains(unitAny.UnitId)) && lootFilter != null)
                                 {
-                                    if (MapAssistConfiguration.Loaded.ItemLog.PlaySoundOnDrop)
+                                    var sound = lootFilter.Sound != "" ? lootFilter.Sound : MapAssistConfiguration.Loaded.ItemLog.Sound;
+                                    if (sound.ToLower() != "silent")
                                     {
-                                        AudioPlayer.PlayItemAlert();
+                                        AudioPlayer.PlayItemAlert(sound);
                                     }
                                     Items.ItemUnitHashesSeen[_currentProcessId].Add(unitAny.ItemHash());
                                     Items.ItemUnitIdsSeen[_currentProcessId].Add(unitAny.UnitId);

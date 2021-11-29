@@ -198,8 +198,8 @@ public class ItemLogConfiguration
     [YamlMember(Alias = "FilterFileName", ApplyNamingConventions = false)]
     public string FilterFileName { get; set; }
 
-    [YamlMember(Alias = "PlaySoundOnDrop", ApplyNamingConventions = false)]
-    public bool PlaySoundOnDrop { get; set; }
+    [YamlMember(Alias = "Sound", ApplyNamingConventions = false)]
+    public string Sound { get; set; }
 
     [YamlMember(Alias = "MaxSize", ApplyNamingConventions = false)]
     public int MaxSize { get; set; }
