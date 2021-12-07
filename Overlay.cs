@@ -136,6 +136,7 @@ namespace MapAssist
                 var smallCornerSize = new Size(640, 360);
 
                 var (gamemap, playerCenter) = _compositor.Compose(_currentGameData);
+                var centerAdjustment = new PointF(0, 0);
 
                 PointF anchor;
                 switch (MapAssistConfiguration.Loaded.RenderingConfiguration.Position)
@@ -143,7 +144,8 @@ namespace MapAssist
                     case MapPosition.Center:
                         if (MapAssistConfiguration.Loaded.RenderingConfiguration.OverlayMode)
                         {
-                            anchor = _window.Center().OffsetFrom(playerCenter).OffsetFrom(0, 8); // Brute forced to perfectly line up with the in game map
+                            centerAdjustment = new PointF(0, 8); // Brute forced to perfectly line up with the in game map
+                            anchor = _window.Center().OffsetFrom(playerCenter).OffsetFrom(centerAdjustment);
                         }
                         else
                         {
@@ -182,6 +184,10 @@ namespace MapAssist
                     DrawBitmap(gfx, gamemap, anchor.ToGameOverlayPoint(), (float)MapAssistConfiguration.Loaded.RenderingConfiguration.Opacity);
                 }
 
+                var hud = _compositor.ComposeHUD(_currentGameData, new Size(_window.Width, _window.Height), centerAdjustment);
+
+                DrawBitmap(gfx, hud, new Point(0, 0), (float)MapAssistConfiguration.Loaded.RenderingConfiguration.Opacity);
+                
                 DrawBuffs(gfx);
             }
         }

@@ -40,6 +40,16 @@ namespace MapAssist.Helpers
             return point.OffsetFrom(offset.X, offset.Y);
         }
 
+        public static PointF OffsetFrom(this Point point, PointF offset)
+        {
+            return new PointF(point.X, point.Y).OffsetFrom(offset);
+        }
+
+        public static PointF Negative(this PointF point)
+        {
+            return new PointF(-point.X, -point.Y);
+        }
+
         public static PointF Multiply(this PointF point, float quantity)
         {
             return point.Multiply(quantity, quantity);
@@ -50,19 +60,22 @@ namespace MapAssist.Helpers
             return new PointF(point.X * x, point.Y * y);
         }
 
-        public static PointF Rotate(this PointF point, float angleDegrees)
+        public static PointF Rotate(this PointF point, double angleDegrees)
         {
             return point.Rotate(angleDegrees, new Point(0, 0));
         }
 
-        public static PointF Rotate(this PointF point, float angleDegrees, PointF centerPoint)
+        public static PointF Rotate(this PointF point, double angleRadians, PointF centerPoint)
         {
-            var angleRadians = angleDegrees * Math.PI / 180d;
-
             return new PointF(
                 (float)(centerPoint.X + Math.Cos(angleRadians) * (point.X - centerPoint.X) - Math.Sin(angleRadians) * (point.Y - centerPoint.Y)),
                 (float)(centerPoint.Y + Math.Sin(angleRadians) * (point.X - centerPoint.X) + Math.Cos(angleRadians) * (point.Y - centerPoint.Y))
             );
+        }
+
+        public static double Angle(this PointF point)
+        {
+            return Math.Atan2(point.Y, point.X);
         }
 
         public static Point ToPoint(this PointF point)
@@ -75,6 +88,11 @@ namespace MapAssist.Helpers
             return new GameOverlay.Drawing.Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
         }
 
+        public static PointF Center(this Size size)
+        {
+            return new PointF(size.Width / 2f, size.Height / 2f);
+        }
+
         public static PointF Center(this SizeF size)
         {
             return new PointF(size.Width / 2f, size.Height / 2f);
@@ -83,6 +101,11 @@ namespace MapAssist.Helpers
         public static PointF Center(this Bitmap bitmap)
         {
             return new PointF(bitmap.Width / 2f, bitmap.Height / 2f);
+        }
+
+        public static bool Includes(this Bitmap bitmap, PointF point)
+        {
+            return point.X > 0 && point.Y > 0 && point.X < bitmap.Width && point.Y < bitmap.Height;
         }
 
         public static PointF Center(this GraphicsWindow window)

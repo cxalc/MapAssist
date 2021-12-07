@@ -27,11 +27,11 @@ namespace MapAssist.Helpers
 {
     public static class ImageUtils
     {
-        public static Bitmap RotateImage(Image inputImage, float angleDegrees, bool upsizeOk, bool clipOk,
+        public static Bitmap RotateImage(Image inputImage, double angleRadians, bool upsizeOk, bool clipOk,
             Color backgroundColor)
         {
             // Test for zero rotation and return a clone of the input image
-            if (angleDegrees == 0f)
+            if (angleRadians == 0f)
                 return (Bitmap)inputImage.Clone();
 
             // Set up old and new image dimensions, assuming upsizing not wanted and clipping OK
@@ -44,8 +44,6 @@ namespace MapAssist.Helpers
             // If upsizing wanted or clipping not OK calculate the size of the resulting bitmap
             if (upsizeOk || !clipOk)
             {
-                var angleRadians = angleDegrees * Math.PI / 180d;
-
                 var cos = Math.Abs(Math.Cos(angleRadians));
                 var sin = Math.Abs(Math.Sin(angleRadians));
                 newWidth = (int)Math.Round(oldWidth * cos + oldHeight * sin);
@@ -83,7 +81,7 @@ namespace MapAssist.Helpers
                 if (scaleFactor != 1f)
                     graphicsObject.ScaleTransform(scaleFactor, scaleFactor);
 
-                graphicsObject.RotateTransform(angleDegrees);
+                graphicsObject.RotateTransform((float)(angleRadians * 180f / Math.PI));
                 graphicsObject.TranslateTransform(-oldWidth / 2f, -oldHeight / 2f);
 
                 // Draw the result

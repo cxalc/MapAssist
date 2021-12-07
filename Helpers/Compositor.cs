@@ -37,7 +37,7 @@ namespace MapAssist.Helpers
         private readonly PointF _rotatedCenter;
         private readonly IReadOnlyList<PointOfInterest> _pointsOfInterest;
         private readonly Dictionary<(string, int), Font> _fontCache = new Dictionary<(string, int), Font>();
-        private readonly int _rotateDegrees = 45;
+        private readonly double _rotateRadians = 45 * Math.PI / 180d;
 
         private readonly Dictionary<(Shape, int, Color, float, float), Bitmap> _iconCache =
             new Dictionary<(Shape, int, Color, float, float), Bitmap>();
@@ -108,7 +108,7 @@ namespace MapAssist.Helpers
                             pen.CustomEndCap = new AdjustableArrowCap(poi.RenderingSettings.ArrowHeadSize, poi.RenderingSettings.ArrowHeadSize);
                         }
 
-                        gfx.DrawLine(pen, localPlayerPosition, poiPosition);
+                        //gfx.DrawLine(pen, localPlayerPosition, poiPosition);
                     }
 
                     if (!string.IsNullOrWhiteSpace(poi.Label) && poi.RenderingSettings.CanDrawLabel())
@@ -206,9 +206,104 @@ namespace MapAssist.Helpers
                         }
                     }
                 }
+
+                //// Draw grid for illustrative purposes
+                //if (true) { 
+                //    var borderPen = new Pen(Color.FromArgb(100, 100, 100), 1);
+
+                //    for (var x = 0; x < _origCenter.X * 2; x += 20)
+                //    {
+                //        var p1 = new PointF(_areaData.Origin.X + x, _areaData.Origin.Y);
+                //        var p2 = new PointF(_areaData.Origin.X + x, _areaData.Origin.Y + _origCenter.Y * 2);
+
+                //        var ap1 = AdjustedPoint(p1);
+                //        var ap2 = AdjustedPoint(p2);
+
+                //        imageGraphics.DrawLine(borderPen, ap1, ap2);
+                //    }
+
+                //    for (var y = 0; y < _origCenter.Y * 2; y += 20)
+                //    {
+                //        var p1 = new PointF(_areaData.Origin.X, _areaData.Origin.Y + y);
+                //        var p2 = new PointF(_areaData.Origin.X + _origCenter.X * 2, _areaData.Origin.Y + y);
+
+                //        var ap1 = AdjustedPoint(p1);
+                //        var ap2 = AdjustedPoint(p2);
+
+                //        imageGraphics.DrawLine(borderPen, ap1, ap2);
+                //    }
+                //}
             }
 
             return (image, localPlayerPosition);
+        }
+
+        public Bitmap ComposeHUD(GameData gameData, Size size, PointF centerOffset)
+        {
+            var localPlayerPosition = AdjustedPoint(gameData.PlayerPosition);
+
+            var image = new Bitmap(size.Width, size.Height);
+
+            var pen = new Pen(Color.FromArgb(255, 0, 0), 2);
+
+            using (var gfx = Graphics.FromImage(image))
+            {
+                gfx.CompositingQuality = CompositingQuality.HighQuality;
+                gfx.InterpolationMode = InterpolationMode.Bicubic;
+                gfx.SmoothingMode = SmoothingMode.HighQuality;
+                gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                foreach (PointOfInterest poi in _pointsOfInterest)
+                {
+                    var poiIcon = GetIcon(poi.RenderingSettings);
+                    var poiPosition = AdjustedPoint(poi.Position);
+                    var windowPoint = WindowPoint(poi.Position, localPlayerPosition, size);
+
+                    if (image.Includes(windowPoint))
+                    {
+                        continue;
+                    }
+
+                    if (poi.RenderingSettings.CanDrawLine())
+                    {
+                        var angle = poiPosition.OffsetFrom(localPlayerPosition).Angle();
+
+                        var lineStart = size.Center().OffsetFrom(centerOffset.Negative()).OffsetFrom(new PointF(-100, 0)).Rotate(angle, size.Center());
+                        var lineEnd = size.Center().OffsetFrom(centerOffset.Negative()).OffsetFrom(new PointF(-150, 0)).Rotate(angle, size.Center());
+
+                        var linePen = new Pen(poi.RenderingSettings.LineColor, poi.RenderingSettings.LineThickness);
+                        linePen.CustomEndCap = new AdjustableArrowCap(20, 20);
+
+                        gfx.DrawLine(linePen, lineStart, lineEnd);
+
+                        var poiFont = GetFont(poi.RenderingSettings);
+
+                        var stringSize = gfx.MeasureString(poi.Label, poiFont);
+                        var position = new PointF((lineStart.X + lineEnd.X) / 2, (lineStart.Y + lineEnd.Y) / 2);
+
+                        gfx.DrawString(poi.Label, poiFont, new SolidBrush(poi.RenderingSettings.LabelColor), position.OffsetFrom(stringSize.Center()).OffsetFrom(new PointF(0, 40)));
+                    }
+
+                    if (poi.RenderingSettings.CanDrawIcon())
+                    {
+                        //// Sample for mana shrines
+                        //var point = WindowPoint(poi.Position.OffsetFrom(new Point(8, 8)), localPlayerPosition, size); // 8, 8 to get the box on the mana orb instead of at the ground level
+
+                        //if (image.Includes(point))
+                        //{
+                        //    gfx.DrawLines(pen, new PointF[] {
+                        //        new PointF(point.X - 5, point.Y - 5),
+                        //        new PointF(point.X - 5, point.Y + 5),
+                        //        new PointF(point.X + 5, point.Y + 5),
+                        //        new PointF(point.X + 5, point.Y - 5),
+                        //        new PointF(point.X - 5, point.Y - 5),
+                        //    });
+                        //}
+                    }
+                }
+            }
+
+            return image;
         }
 
         private static IconRendering GetMonsterIconRendering(MonsterData monsterData)
@@ -258,7 +353,7 @@ namespace MapAssist.Helpers
 
             var center = new PointF(background.Width / 2f, background.Height / 2f);
 
-            background = ImageUtils.RotateImage(background, _rotateDegrees, true, false, Color.Transparent);
+            background = ImageUtils.RotateImage(background, _rotateRadians, true, false, Color.Transparent);
             var rotatedCenter = new PointF(background.Width / 2f, background.Height / 2f);
 
             var (newBackground, cropOffset) = ImageUtils.CropBitmap(background, padding);
@@ -268,10 +363,21 @@ namespace MapAssist.Helpers
 
         private PointF AdjustedPoint(PointF p)
         {
-            var newP = p.OffsetFrom(_areaData.Origin).Rotate(_rotateDegrees, _origCenter)
+            var newP = p.OffsetFrom(_areaData.Origin).Rotate(_rotateRadians, _origCenter)
                 .OffsetFrom(_origCenter.OffsetFrom(_rotatedCenter))
                 .OffsetFrom(_cropOffset)
                 .Multiply(scaleWidth, scaleHeight);
+
+            return newP;
+        }
+
+        private PointF WindowPoint(PointF p, PointF playerPosition, Size size)
+        {
+            Console.WriteLine(size.Height);
+            var newP = AdjustedPoint(p)
+                .OffsetFrom(playerPosition)
+                .Multiply(size.Height / 120f); // 120 is brute forced, but it works
+            newP = size.Center().OffsetFrom(newP.Negative());
 
             return newP;
         }
@@ -346,7 +452,7 @@ namespace MapAssist.Helpers
                             new PointF(poiSettings.IconSize, 0),
                             new PointF(poiSettings.IconSize, poiSettings.IconSize),
                             new PointF(0, poiSettings.IconSize)
-                        }.Select(point => point.Rotate(_rotateDegrees).Multiply(scaleWidth, scaleHeight)).ToArray().MoveToOrigin(iconPadding);
+                        }.Select(point => point.Rotate(_rotateRadians).Multiply(scaleWidth, scaleHeight)).ToArray().MoveToOrigin(iconPadding);
 
                         bitmap = squarePoints.ToBitmap(iconPadding);
                         using (var g = Graphics.FromImage(bitmap))
