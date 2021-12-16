@@ -164,6 +164,14 @@ namespace MapAssist
             }
         }
 
+        public void MouseMoveHandler(object sender, MouseEventArgs args)
+        {
+            if (InGame() && _compositor != null)
+            {
+                _compositor.SetMousePosition(new Point(args.X, args.Y));
+            }
+        }
+
         /// <summary>
         /// Resize overlay to currently active screen
         /// </summary>

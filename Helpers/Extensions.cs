@@ -100,6 +100,11 @@ namespace MapAssist.Helpers
             return new Rectangle(minX - padding, minY - padding, maxX + padding, maxY + padding);
         }
 
+        public static bool Contains(this Rectangle rect, Point point)
+        {
+            return point.X >= rect.Left && point.X <= rect.Right && point.Y >= rect.Top && point.Y <= rect.Bottom;
+        }
+
         public static SystemColor SetOpacity(this SystemColor color, float opacity)
         {
             return SystemColor.FromArgb((int)(color.A * opacity), color.R, color.G, color.B);

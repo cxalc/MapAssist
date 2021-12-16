@@ -126,6 +126,14 @@ namespace MapAssist
                         Visible = true
                     };
 
+                    globalHook.MouseMove += (sender, args) =>
+                    {
+                        if (overlay != null)
+                        {
+                            overlay.MouseMoveHandler(sender, args);
+                        }
+                    };
+
                     globalHook.KeyPress += (sender, args) =>
                     {
                         if (overlay != null)

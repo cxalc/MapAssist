@@ -323,7 +323,7 @@ namespace MapAssist.Helpers
                     {
                         (length, json) = collection.Take(cancelToken.Token);
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException)
                     {
                         _log.Info("MapApi operation cancelled, retrying");
                         retry = true;
