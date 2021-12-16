@@ -164,12 +164,13 @@ namespace MapAssist.Helpers
             var (startupLength, _) = collection.Take();
 
             // Cancel requests on the previous pipe only after the current pipe has successfully started
-            if (cancelToken != null)
-            {
-                cancelToken.Cancel();
-                cancelToken.Dispose();
-            }
+            var prevCancelToken = cancelToken;
             cancelToken = new CancellationTokenSource();
+            if (prevCancelToken != null)
+            {
+                prevCancelToken.Cancel();
+                prevCancelToken.Dispose();
+            }
 
             return startupLength == 0;
         }
