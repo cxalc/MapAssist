@@ -43,7 +43,7 @@ jobs:
       - name: Zip release
         uses: vimtor/action-zip@v1
         with:
-          files: bin/x64/Release/ LICENSE README.md
+          files: bin/x64/debug/ LICENSE README.md
           recursive: true
           dest: MapAssist.zip
 
