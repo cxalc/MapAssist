@@ -15,7 +15,7 @@ RenderingConfiguration:
   MonsterHealthBar: true
   ToggleViaInGameMap: false
   ToggleViaInGamePanels: true
-  StickToLastGameWindow: false
+  StickToLastGameWindow: true
   Size: 800
   ZoomLevel: 1
   BuffSize: 1

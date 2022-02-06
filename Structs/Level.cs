@@ -17,6 +17,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  **/
 
+using System;
 using System.Runtime.InteropServices;
 using MapAssist.Types;
 
@@ -25,6 +26,7 @@ namespace MapAssist.Structs
     [StructLayout(LayoutKind.Explicit)]
     public struct Level
     {
+        [FieldOffset(0x10)] public IntPtr pRoomExFirst;
         [FieldOffset(0x1F8)] public Area LevelId;
     }
 }

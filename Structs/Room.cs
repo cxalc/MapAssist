@@ -27,8 +27,17 @@ namespace MapAssist.Structs
     {
         [FieldOffset(0x00)] public IntPtr pRoomsNear;
         [FieldOffset(0x18)] public IntPtr pRoomEx;
+        [FieldOffset(0x38)] public IntPtr pCollisionGrid;
         [FieldOffset(0x40)] public uint numRoomsNear;
         [FieldOffset(0x48)] public IntPtr pAct;
+        [FieldOffset(0x80)] public uint startX;
+        [FieldOffset(0x84)] public uint startY;
+        [FieldOffset(0x88)] public uint sizeX;
+        [FieldOffset(0x8C)] public uint sizeY;
+        [FieldOffset(0x90)] public uint posX;
+        [FieldOffset(0x94)] public uint posY;
+        [FieldOffset(0x98)] public uint roomSizeX;
+        [FieldOffset(0x9C)] public uint roomSizeY;
         [FieldOffset(0xA8)] public IntPtr pUnitFirst;
         [FieldOffset(0xB0)] public IntPtr pRoomNext;
     }

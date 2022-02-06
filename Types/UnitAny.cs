@@ -43,7 +43,7 @@ namespace MapAssist.Types
         public DateTime FoundTime { get; set; } = DateTime.Now;
         public bool IsHovered { get; set; } = false;
         public bool IsCached { get; set; } = false;
-        private Path Path { get; set; }
+        public Path Path { get; set; }
 
         public UnitAny(IntPtr ptrUnit)
         {

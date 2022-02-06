@@ -18,33 +18,21 @@
  **/
 
 using System;
-using MapAssist.Helpers;
-using MapAssist.Interfaces;
+using System.Runtime.InteropServices;
 
-namespace MapAssist.Types
+namespace MapAssist.Structs
 {
-    public class Level : IUpdatable<Level>
+    [StructLayout(LayoutKind.Explicit)]
+    public struct CollisionGrid
     {
-        private readonly IntPtr _pLevel = IntPtr.Zero;
-        private Structs.Level _level;
-
-        public Level(IntPtr pLevel)
-        {
-            _pLevel = pLevel;
-            Update();
-        }
-
-        public Level Update()
-        {
-            using (var processContext = GameManager.GetProcessContext())
-            {
-                _level = processContext.Read<Structs.Level>(_pLevel);
-            }
-
-            return this;
-        }
-
-        public Area LevelId => _level.LevelId;
-        public RoomEx RoomExFirst => new RoomEx(_level.pRoomExFirst);
+        [FieldOffset(0x0)] public uint subtilesLeft;
+        [FieldOffset(0x4)] public uint subtilesTop;
+        [FieldOffset(0x8)] public uint subtilesWidth;
+        [FieldOffset(0xC)] public uint subtilesHeight;
+        [FieldOffset(0x10)] public uint tilesLeft;
+        [FieldOffset(0x14)] public uint tilesTop;
+        [FieldOffset(0x18)] public uint tilesWidth;
+        [FieldOffset(0x1C)] public uint tilesHeight;
+        [FieldOffset(0x20)] public IntPtr pCollisionMask;
     }
 }

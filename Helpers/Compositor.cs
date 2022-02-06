@@ -84,6 +84,45 @@ namespace MapAssist.Helpers
             _frameCount += 1;
             (scaleWidth, scaleHeight) = GetScaleRatios();
 
+            var area = _gameData.PlayerUnit.Area;
+
+            var rooms = new List<Types.Room>() { _gameData.PlayerUnit.Path.Room };
+            var roomCache = new Dictionary<IntPtr, ushort[][]>();
+            var roomsGrids = new Dictionary<(uint, uint), ushort[][]>();
+
+            while (true)
+            {
+                if (rooms.Count == 0) break;
+
+                var room = rooms[0];
+                rooms.RemoveAt(0);
+
+                roomCache[room.PtrRoom] = room.CollisionGrid;
+                roomsGrids[(room.X, room.Y)] = room.CollisionGrid;
+
+                var nearbyNewRooms = room.RoomsNear.Where(x => !roomCache.ContainsKey(x)).Select(x => new Types.Room(x)).Where(x => x.RoomEx.Level.LevelId == area).ToArray();
+                if (nearbyNewRooms.Length > 0) rooms.AddRange(nearbyNewRooms);
+            }
+
+            var minX = roomsGrids.Keys.Select(x => (int)x.Item1).Min();
+            var minY = roomsGrids.Keys.Select(x => (int)x.Item2).Min();
+            var maxX = roomsGrids.Select(x => (int)x.Key.Item1 + x.Value.Length).Max();
+            var maxY = roomsGrids.Select(x => (int)x.Key.Item2 + x.Value[0].Length).Max();
+
+            var grid = Enumerable.Range(minY, maxY - minY).Select(y => Enumerable.Range(minX, maxX - minX).Select(x => {
+                var areaX = (uint)roomsGrids.Keys.Select(i => (int)i.Item1).Where(i => i <= x).Max();
+                var areaY = (uint)roomsGrids.Keys.Select(i => (int)i.Item2).Where(i => i <= y).Max();
+                return roomsGrids[(areaX, areaY)][y - areaY][x - areaX];
+            }).ToArray()).ToArray();
+            var xls = string.Join(Environment.NewLine, grid.Select(x => string.Join("\t", x)));
+            var xls2 = string.Join(Environment.NewLine, roomCache.Values.First().Select(x => string.Join("\t", x)));
+
+            var size1 = roomCache.Values.ToArray().Length * roomCache.Values.ToArray()[0].Length * roomCache.Values.ToArray()[0][0].Length;
+            var size2 = _areaData.RawAreaData.Length * _areaData.RawAreaData[0].Length;
+
+            var room1 = _gameData.PlayerUnit.Path.Room;
+            var room2 = room1.RoomNext;
+
             var renderWidth = MapAssistConfiguration.Loaded.RenderingConfiguration.Size * _areaData.ViewOutputRect.Width / _areaData.ViewOutputRect.Height;
             switch (MapAssistConfiguration.Loaded.RenderingConfiguration.Position)
             {

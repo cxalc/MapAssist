@@ -17,72 +17,66 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  **/
 
+using GameOverlay.Drawing;
 using MapAssist.Helpers;
 using MapAssist.Interfaces;
 using System;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace MapAssist.Types
 {
     public class Room : IUpdatable<Room>
     {
-        private readonly IntPtr _pRoom = IntPtr.Zero;
         private Structs.Room _room;
+        public IntPtr PtrRoom { get; set; } = IntPtr.Zero;
+        public Point Position => new Point(X, Y);
+        public uint X => _room.startX;
+        public uint Y => _room.startY;
+        public ushort[][] CollisionGrid { get; private set; } = new ushort[][] { };
 
-        public Room(IntPtr pRoom, bool update = true)
+        public Room(IntPtr pRoom)
         {
-            _pRoom = pRoom;
-            if (update) { Update(); }
+            PtrRoom = pRoom;
+            Update();
         }
 
         public Room Update()
         {
             using (var processContext = GameManager.GetProcessContext())
             {
-                _room = processContext.Read<Structs.Room>(_pRoom);
+                _room = processContext.Read<Structs.Room>(PtrRoom);
+
+                if (_room.pCollisionGrid != IntPtr.Zero)
+                {
+                    var grid = processContext.Read<Structs.CollisionGrid>(_room.pCollisionGrid);
+                    var vals = processContext.Read<ushort>(grid.pCollisionMask, (int)(grid.subtilesWidth * grid.subtilesHeight));
+                    CollisionGrid = Enumerable.Range(0, (int)grid.subtilesWidth).Select(x => Enumerable.Range(0, (int)grid.subtilesHeight).Select(y => vals[x * grid.subtilesHeight + y]).ToArray()).ToArray();
+                }
             }
 
             return this;
         }
 
-        public Room[] RoomsNear
+        public IntPtr[] RoomsNear
         {
             get
             {
                 using (var processContext = GameManager.GetProcessContext())
                 {
-                    var addrBuf = new byte[8];
-                    var uintBuf = new byte[4];
-                    WindowsExternal.ReadProcessMemory(processContext.Handle, IntPtr.Add(_pRoom, 0x40), uintBuf,
-                        uintBuf.Length, out _);
-                    var numRoomsNear = BitConverter.ToUInt32(uintBuf, 0);
-                    if (numRoomsNear > 9)
-                    {
-                        numRoomsNear = 9;
-                    }
-
-                    var roomList = new Room[numRoomsNear];
-                    for (var p = 0; p < numRoomsNear; p++)
-                    {
-                        WindowsExternal.ReadProcessMemory(processContext.Handle, IntPtr.Add(_room.pRoomsNear, p * 8),
-                            addrBuf, addrBuf.Length, out _);
-                        var pRoom = (IntPtr)BitConverter.ToInt64(addrBuf, 0);
-                        roomList[p] = new Room(pRoom, false);
-                    }
-
-                    return roomList;
+                    return processContext.Read<IntPtr>(_room.pRoomsNear, (int)Math.Min(NumRoomsNear, 9));
                 }
             }
         }
 
         public override bool Equals(object obj) => obj is Room other && Equals(other);
-        public bool Equals(Room room) => _pRoom == room._pRoom;
-        public override int GetHashCode() => _pRoom.GetHashCode();
+
+        public bool Equals(Room room) => PtrRoom == room.PtrRoom;
+
+        public override int GetHashCode() => PtrRoom.GetHashCode();
+
         public RoomEx RoomEx => new RoomEx(_room.pRoomEx);
         public uint NumRoomsNear => _room.numRoomsNear;
         public Act Act => new Act(_room.pAct);
         public Room RoomNext => new Room(_room.pRoomNext);
-        public Room RoomNextFast => new Room(_room.pRoomNext, false);
     }
 }

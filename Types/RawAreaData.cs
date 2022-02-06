@@ -87,6 +87,7 @@ namespace MapAssist.Types
                 Area = area,
                 Origin = offset.ToPoint(),
                 MapPadding = padding,
+                RawAreaData = GetCollisionGid(0),
                 CollisionGrid = GetCollisionGid(padding),
                 AdjacentLevels = exits
                     .Select(o =>

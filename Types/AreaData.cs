@@ -40,6 +40,7 @@ namespace MapAssist.Types
         public Dictionary<Area, AdjacentLevel> AdjacentLevels;
         public Dictionary<Area, AreaData> AdjacentAreas = new Dictionary<Area, AreaData>();
         public int[][] CollisionGrid;
+        public int[][] RawAreaData;
         public Rectangle ViewInputRect;
         public Rectangle ViewOutputRect;
         public Dictionary<Npc, Point[]> NPCs;
